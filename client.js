@@ -30,9 +30,12 @@ Client.prototype.request = function (method, path, prefix, attributes) {
 
   var qs = { api_key: this.apiKey };
   for (var k in attributes || {}) {
-    qs[prefix + '[' + k +']'] = attributes[k];
+    if (prefix) {
+      qs[prefix + '[' + k +']'] = attributes[k];
+    } else {
+      qs[k] = attributes[k];  
+    }
   }
-
   return request(method, base + path, { qs: qs })
     .then(function (res) {
       if (res.statusCode in errors) throw new Error(errors[res.statusCode] + ' ' + res.body);
@@ -48,18 +51,20 @@ function noGroupError() {
 }
 
 /**
+ * Create id not defined error
+ */
+function noIdError() {
+  return new Error('ID not defined');
+}
+
+/**
  * Group API method
  *
- * @param   attributes  optional attributes
  * @param   callback    optional node style callback
  * @returns promise
  */
-Client.prototype.getGroups = function (attributes, callback) {
-  if (typeof attributes === 'function') {
-    callback  = attributes;
-    options   = {};
-  }
-  return this.request('GET', 'groups', attributes)
+Client.prototype.getGroups = function (callback) {
+  return this.request('GET', 'groups')
     .then(function (res) {
       return res.groups;
     })
@@ -71,19 +76,34 @@ Client.prototype.getGroups = function (attributes, callback) {
  * Publications API method
  *
  * @param   group       the group
- * @param   attributes  optional attributes
  * @param   callback    optional node style callback
  * @returns promise
  */
-Client.prototype.getPublications = function (group, attributes, callback) {
+Client.prototype.getPublications = function (group, callback) {
   if (typeof group != 'number') throw noGroupError();
-  if (typeof attributes === 'function') {
-    callback    = attributes;
-    attributes  = {};
-  }
-  return this.request('GET', 'groups/' + group + '/publications', attributes)
+
+  return this.request('GET', ['groups', group, 'publications'].join('/'))
     .then(function (res) {
       return res.publications;
+    })
+    .nodeify(callback);
+};
+
+/**
+ * Get a specific publication
+ *
+ * @param   group       the group
+ * @param   id          the publication id
+ * @param   callback    optional node style callback
+ * @returns promise
+ */
+Client.prototype.getPublication = function (group, id, callback) {
+  if (typeof group != 'number') throw noGroupError();
+  if (typeof id    != 'number') throw noIdError();
+
+  return this.request('GET', ['groups', group, 'publications', id].join('/'))
+    .then(function (res) {
+      return res.publication;
     })
     .nodeify(callback);
 };
@@ -93,16 +113,16 @@ Client.prototype.getPublications = function (group, attributes, callback) {
  * Create publication API method
  *
  * @param   group       the group
- * @param   attributes  optional attributes
+ * @param   publication the publication
  * @param   callback    optional node style callback
  * @returns promise
  */
-Client.prototype.createPublication = function (group, attributes, callback) {
+Client.prototype.createPublication = function (group, publication, callback) {
   if (!group) throw noGroupError();
-  if (typeof attributes === 'function') {
-    callback    = attributes;
-    attributes  = {};
-  }
-  return this.request('POST', 'groups/' + group + '/publications', 'publication', attributes)
+  
+  return this.request('POST', ['groups', group, 'publications'].join('/'), 'publication', publication)
+    .then(function (res) {
+      return res.publication;
+    })
     .nodeify(callback);
 };
