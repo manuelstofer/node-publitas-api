@@ -1,0 +1,16 @@
+{
+  "name": "publitas-api",
+  "version": "0.0.1",
+  "description": "A simple node.js wrapper for the publitas api",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/manuelstofer/node-publitas-api.git"
+  },
+  "main": "client.js",
+  "author": "Manuel Stofer",
+  "license": "MIT",
+  "dependencies": {
+    "then-request": "^2.1.0"
+  },
+  "scripts": {}
+}
