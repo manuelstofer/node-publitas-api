@@ -47,14 +47,14 @@ Client.prototype.request = function (method, path, prefix, attributes) {
  * Create group not defined error
  */
 function noGroupError() {
-  return new Error('Group not defined');
+  return new Error('Group is not a number');
 }
 
 /**
  * Create id not defined error
  */
 function noIdError() {
-  return new Error('ID not defined');
+  return new Error('Id is not a number');
 }
 
 /**
