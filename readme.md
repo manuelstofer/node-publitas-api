@@ -36,5 +36,5 @@ Get a specific publication by id
 ### #createPublication(groupId, publication, fn(err, publication))
 Create a publication
 
-### #markPublicationOnline(groupId, publicationId, fn(err, publication))
+### #markPublicationOnline(groupId, publicationId, fn(err))
 Mark a publication as online.
