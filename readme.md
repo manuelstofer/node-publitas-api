@@ -27,11 +27,14 @@ publitas.getGroups(function log (err, res) {
 ### #getGroups(fn(err, groups))
 Get all groups
 
-### #getPublications(group, fn(err, publications))
+### #getPublications(groupId, fn(err, publications))
 Get all publication of a group
 
-### #getPublication(group, id, fn(err, publication))
+### #getPublication(groupId, publicationId, fn(err, publication))
 Get a specific publication by id
 
-### #createPublication(group, publication, fn(err, publication))
+### #createPublication(groupId, publication, fn(err, publication))
 Create a publication
+
+### #markPublicationOnline(groupId, publicationId, fn(err, publication))
+Mark a publication as online.

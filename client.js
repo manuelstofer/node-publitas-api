@@ -23,10 +23,11 @@ function Client(apiKey) {
  *
  * @param   method      the HTTP method
  * @param   path        the path
+ * @param   json        parse response body as json
  * @param   attributes  query string attributes
  * @returns promise
  */
-Client.prototype.request = function (method, path, prefix, attributes) {
+Client.prototype.request = function (method, path, json, prefix, attributes) {
 
   var qs = { api_key: this.apiKey };
   for (var k in attributes || {}) {
@@ -39,19 +40,20 @@ Client.prototype.request = function (method, path, prefix, attributes) {
   return request(method, base + path, { qs: qs })
     .then(function (res) {
       if (res.statusCode in errors) throw new Error(errors[res.statusCode] + ' ' + res.body);
-      return JSON.parse(res.getBody());
+      if (json) return JSON.parse(res.getBody());
+      return res.body.toString();
     });
 }
 
 /**
- * Create group not defined error
+ * Create "Group is not a number" error
  */
 function noGroupError() {
   return new Error('Group is not a number');
 }
 
 /**
- * Create id not defined error
+ * Create "Id is not a number" error
  */
 function noIdError() {
   return new Error('Id is not a number');
@@ -64,7 +66,7 @@ function noIdError() {
  * @returns promise
  */
 Client.prototype.getGroups = function (callback) {
-  return this.request('GET', 'groups')
+  return this.request('GET', 'groups', true)
     .then(function (res) {
       return res.groups;
     })
@@ -75,14 +77,14 @@ Client.prototype.getGroups = function (callback) {
 /**
  * Publications API method
  *
- * @param   group       the group
+ * @param   groupId     the group id
  * @param   callback    optional node style callback
  * @returns promise
  */
-Client.prototype.getPublications = function (group, callback) {
-  if (typeof group != 'number') throw noGroupError();
+Client.prototype.getPublications = function (groupId, callback) {
+  if (typeof groupId != 'number') throw noGroupError();
 
-  return this.request('GET', ['groups', group, 'publications'].join('/'))
+  return this.request('GET', ['groups', groupId, 'publications'].join('/'), true)
     .then(function (res) {
       return res.publications;
     })
@@ -92,16 +94,16 @@ Client.prototype.getPublications = function (group, callback) {
 /**
  * Get a specific publication
  *
- * @param   group       the group
- * @param   id          the publication id
- * @param   callback    optional node style callback
+ * @param   groupId       the groupId
+ * @param   publicationId the publication id
+ * @param   callback      optional node style callback
  * @returns promise
  */
-Client.prototype.getPublication = function (group, id, callback) {
-  if (typeof group != 'number') throw noGroupError();
-  if (typeof id    != 'number') throw noIdError();
+Client.prototype.getPublication = function (groupId, publicationId, callback) {
+  if (typeof groupId        != 'number') throw noGroupError();
+  if (typeof publicationId  != 'number') throw noIdError();
 
-  return this.request('GET', ['groups', group, 'publications', id].join('/'))
+  return this.request('GET', ['groups', groupId, 'publications', publicationId].join('/'), true)
     .then(function (res) {
       return res.publication;
     })
@@ -112,17 +114,34 @@ Client.prototype.getPublication = function (group, id, callback) {
 /**
  * Create publication API method
  *
- * @param   group       the group
+ * @param   groupId     the groupId
  * @param   publication the publication
  * @param   callback    optional node style callback
  * @returns promise
  */
-Client.prototype.createPublication = function (group, publication, callback) {
-  if (!group) throw noGroupError();
+Client.prototype.createPublication = function (groupId, publication, callback) {
+  if (typeof groupId != 'number') throw noGroupError();
   
-  return this.request('POST', ['groups', group, 'publications'].join('/'), 'publication', publication)
+  return this.request('POST', ['groups', groupId, 'publications'].join('/'), true, 'publication', publication)
     .then(function (res) {
       return res.publication;
     })
+    .nodeify(callback);
+};
+
+
+/**
+ * Mark a publication as online
+ *
+ * @param   groupId       the groupId
+ * @param   publicationId the publicationId
+ * @param   callback      optional node style callback
+ * @returns promise
+ */
+Client.prototype.markPublicationOnline = function (groupId, publicationId, callback) {
+  if (typeof groupId        != 'number') throw noGroupError();
+  if (typeof publicationId  != 'number') throw noIdError();
+  
+  return this.request('POST', ['groups', groupId, 'publications', publicationId, 'online'].join('/'), false)
     .nodeify(callback);
 };
